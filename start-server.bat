@@ -1,6 +1,6 @@
 @echo off
+title "SimpleProcGen (TTRPG Tools)"
 setlocal
-title TTRPG Tools launcher
 
 REM ============================================================
 REM  TTRPG Tools launcher - starts the Node.js dev server.
@@ -32,29 +32,12 @@ if errorlevel 3 (
   exit /b 0
 )
 
-REM --- Start the Node server in its own titled window -----------------------
 echo Starting TTRPG Tools server on http://127.0.0.1:8923/ ...
-start "TTRPG Tools server" node "%~dp0server\server.js"
-
-REM --- Poll /api/health until healthy, ~30 x 500 ms --------------------------
-set /a tries=0
-:poll
-set /a tries+=1
-node -e "var h=require('http');var r=h.get({host:'127.0.0.1',port:8923,path:'/api/health',timeout:1500},function(x){var d='';x.on('data',function(c){d=d+c});x.on('end',function(){var ok=false;try{ok=JSON.parse(d).ok===true}catch(e){}process.exit(ok?3:1)});});r.on('error',function(){process.exit(1)});r.on('timeout',function(){r.destroy();process.exit(1)})"
-if errorlevel 3 goto up
-if %tries% geq 30 goto fail
-node -e "setTimeout(function(){},500)"
-goto poll
-
-:up
-echo Server is up: http://127.0.0.1:8923/
 start "" "http://127.0.0.1:8923/"
-exit /b 0
+node "%~dp0server\server.js"
 
-:fail
 echo.
-echo The server did not come up in time.
-echo Check the "TTRPG Tools server" window for the error, for example
+echo The server exited. Check the output above for the error, for example
 echo port 8923 already in use, and try again.
 echo.
 pause
