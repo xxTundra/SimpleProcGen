@@ -66,7 +66,7 @@ Both launchers check whether a server is already healthy on port 8923 and, if no
 - **Roll history** — every roll and generator run is logged with time, expression, and value, with per-row copy; capped at 50 entries, persisted locally, clearable
 - **Themes** — midnight (default), paper, ember, and mono, chosen from the header and remembered between sessions
 - **Import & export** — export per generator, or "export all" per tab (generators can export with their containers), import with preview and ID-remap dialogs (conflicting items are imported separately, never merged), drag & drop `.json` files anywhere on the page, and a Files tab for downloading or deleting individual files
-- **Starter content** — four shipped files demo a full composition: the Chest table nests an Oracle table roll, a dice macro, and an inline range; the Chest Hunt generator rolls it and runs the ChestAppraisal logic operation on the result
+- **Starter content** — four shipped files demo a full composition: the Chest table nests an Oracle table roll, a dice macro, and an inline range; the Chest Hunt generator rolls it and appraises the find with the ChestAppraisal logic operation
 - **Help** — six in-app help pages (intro, dice, macros, tables, generators, logic) with a sidebar and prev/next pagers, reached from the Help button in the roll panel and on the Tables, Generators, and Logic tabs
 - **Local storage backends** — the local Node server, a connected folder via the File-System-Access picker, or an IndexedDB fallback; the status pill shows which mode is active
 
