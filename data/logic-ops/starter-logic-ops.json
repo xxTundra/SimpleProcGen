@@ -3,9 +3,9 @@
     {
       "id": "op_4d7e9a21",
       "name": "ChestAppraisal",
-      "purpose": "Appraises a drawn chest entry and rolls the damage it deals.",
-      "script": "IMPORT %chest%\nSET loot = %chest%\nSET base_damage = ROLL ((30-50))\nSET bonus_damage = ROLL |2d6kh1|\n\nIF base_damage > 45 THEN:\n    SET rarity = \"Legendary\"\nELSE:\n    SET rarity = \"Common\"\nEXPOSE loot\nEXPOSE base_damage\nEXPOSE rarity",
-      "outputTemplate": "%rarity% %loot% (%base_damage% Base damage, +%bonus_damage%)"
+      "purpose": "Appraises the rarity of a drawn chest find.",
+      "script": "SET base_damage = ROLL ((30-50))\n\nIF base_damage > 45 THEN:\n    SET rarity = \"Legendary\"\nELSE:\n    SET rarity = \"Common\"\nEXPOSE rarity",
+      "outputTemplate": "%rarity%"
     }
   ]
 }
