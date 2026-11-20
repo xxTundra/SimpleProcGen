@@ -43,7 +43,7 @@ const REQ_TIMEOUT_MS = 15000;
 const READY_TIMEOUT_MS = 20000;
 
 // app.js is app code and stays pinned (re-pin whenever app.js changes).
-const APP_SHA = 'EBFBC859A435CE5A0923F480BC7E1A26FEC08E40BA3CA949A003A50703BB9480';
+const APP_SHA = '28A87A9073599BC78AD962E638F1E419024A00BB3219F73605F4343F6DBA5A00';
 
 // data/ is restored from tests/fixtures/ at the start of the run, so the
 // suite always starts from exactly these 4 seed files. Digests are recorded

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 cd "$(dirname "$0")" || exit 1
 
@@ -33,23 +33,6 @@ if [ "$status" -eq 3 ]; then
 fi
 
 echo "Starting TTRPG Tools server on http://127.0.0.1:8923/ ..."
-node server/server.js &
-
-tries=0
-while [ "$tries" -lt 30 ]; do
-  probe
-  status=$?
-  if [ "$status" -eq 3 ]; then
-    echo "Server is up: http://127.0.0.1:8923/"
-    open_browser
-    exit 0
-  fi
-  tries=$((tries + 1))
-  sleep 0.5
-done
-
-echo
-echo "The server did not come up in time."
-echo "Check the server output above for the error, for example"
-echo "port 8923 already in use, and try again."
-exit 1
+open_browser
+printf '\033]0;SimpleProcGen (TTRPG Tools)\007'
+exec -a "SimpleProcGen (TTRPG Tools)" node server/server.js
