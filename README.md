@@ -1,6 +1,6 @@
 # TTRPG Tools
 
-A local, browser-based toolkit for tabletop RPG randomness: roll dice, pick from weighted tables, and generate text — no packages to install, no accounts, and nothing leaves your machine. Its strength is composition: macros and tables are referenceable from anywhere, tables nest inside tables, and generators and logic scripts weave macros, tables, inline values, and each other together. One small, tightly connected set of tools covers 99% of what you'd ever want from randomness and predefined tables.
+A local, browser-based toolkit for tabletop RPG randomness: roll dice, pick from weighted tables, and generate text. Its strength is composition: macros and tables are referenceable from anywhere, tables nest inside tables, and generators and logic scripts weave macros, tables, inline values, and each other together. One small, tightly connected set of tools covers 99% of what you'd ever want from randomness and predefined tables.
 
 ## Features
 
@@ -24,7 +24,7 @@ Node.js on your PATH. That is the only requirement.
 The app is served by a small local server on `http://127.0.0.1:8923/`.
 
 - **Windows**: double-click `start-server.bat`
-- **macOS**: run `./start-server.sh`
+- **macOS**: run `./start-server.sh` (I have not tested on a mac machine)
 - **Linux**: run `./start-server.sh`
 
 Both launchers check whether a server is already healthy on port 8923 and, if not, start one, wait until it answers, then open the app in your browser.
@@ -66,7 +66,7 @@ Both launchers check whether a server is already healthy on port 8923 and, if no
 - **Roll history** — every roll and generator run is logged with time, expression, and value, with per-row copy; capped at 50 entries, persisted locally, clearable
 - **Themes** — midnight (default), paper, ember, and mono, chosen from the header and remembered between sessions
 - **Import & export** — export per generator, or "export all" per tab (generators can export with their containers), import with preview and ID-remap dialogs (conflicting items are imported separately, never merged), drag & drop `.json` files anywhere on the page, and a Files tab for downloading or deleting individual files
-- **Starter content** — four shipped files demo a full composition: the Chest table nests an Oracle table roll, a dice macro, and an inline range; the Chest Hunt generator rolls it and appraises the find with the ChestAppraisal logic operation
+- **Starter content** — four shipped files demo a full composition: the Chest table nests an Oracle table roll, a dice macro, and an inline range; the Chest Hunt generator rolls it and runs the ChestAppraisal logic operation on the result
 - **Help** — six in-app help pages (intro, dice, macros, tables, generators, logic) with a sidebar and prev/next pagers, reached from the Help button in the roll panel and on the Tables, Generators, and Logic tabs
 - **Local storage backends** — the local Node server, a connected folder via the File-System-Access picker, or an IndexedDB fallback; the status pill shows which mode is active
 
@@ -93,6 +93,4 @@ A fourth, `node tests/headless-ui-harness.js`, drives the real app UI headlessly
 
 The harness is the only part that needs an extra dependency: `jsdom`. It is a dev-only package, never needed to run the app. A developer provides it with `npm install --no-save jsdom` at the repo root, or by pointing the `JSDOM_PATH` environment variable at an installed copy.
 
-## License
 
-MIT — the license is configured on the GitHub repository page.
