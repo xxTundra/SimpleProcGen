@@ -1,0 +1,72 @@
+{
+  "items": [
+    {
+      "name": "Chest",
+      "entries": [
+        {
+          "label": "|2d10| Gold coins",
+          "weight": 40
+        },
+        {
+          "label": "Potion of ((Healing | Fire Resistance | Paralyze))",
+          "weight": 20
+        },
+        {
+          "label": "A letter from the Oracle: [Oracle]",
+          "weight": 10
+        },
+        {
+          "label": "((2-5)) Gems",
+          "weight": 10
+        },
+        {
+          "label": "A homemade land mine that does |fireball| damage in a 10ft radius upon triggering",
+          "weight": 10
+        },
+        {
+          "label": "Ancient map",
+          "weight": 10
+        }
+      ],
+      "id": "tbl_3fa9c021"
+    },
+    {
+      "name": "Oracle",
+      "entries": [
+        {
+          "label": "YES — and more",
+          "weight": 15
+        },
+        {
+          "label": "YES — but at a cost",
+          "weight": 15
+        },
+        {
+          "label": "MAYBE / IT DEPENDS",
+          "weight": 15
+        },
+        {
+          "label": "NO — but here's a lead",
+          "weight": 15
+        },
+        {
+          "label": "NO — and it's bad",
+          "weight": 15
+        },
+        {
+          "label": "NOT A CHANCE",
+          "weight": 10
+        },
+        {
+          "label": "WAIT AND SEE",
+          "weight": 10
+        },
+        {
+          "label": "ASK AGAIN LATER",
+          "weight": 5
+        }
+      ],
+      "id": "tbl_77d2e4b8"
+    }
+  ]
+}

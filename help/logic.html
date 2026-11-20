@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logic — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html">Intro</a>
+<a href="dice.html">Dice</a>
+<a href="macros.html">Macros</a>
+<a href="tables.html">Tables</a>
+<a href="generator.html">Generators</a>
+<a href="logic.html" class="current" aria-current="page">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="logic" class="help-section">
+<h2>Logic</h2>
+<p>Logic operations live in the Logic tab, where each has a name, a script, and an Output Template that prints the run's exposed variables as %name% spans. The script rolls and assigns values into variables; the Logic tab's test panel runs it on its own — an input field per IMPORT, a run test button, a trace, the Exposed chips, and a table of every variable — and an operation is also invoked by the {name} spans of table rows and generator templates. A script holds one statement per line. Its keywords are the 12 case-sensitive uppercase words SET, ROLL, IF, THEN, ELSE, SWITCH, CASE, DEFAULT, IMPORT, EXPOSE, AND, OR, plus the lowercase boolean literals true and false; EACH and UNIQUE are reserved words that lead a SET value, not statement keywords, and OUTPUT is not a keyword at all — using it as a statement fails: formatting belongs in the Output Template field.</p>
+<h3>Comments (#)</h3>
+<p>A # starts a comment that runs to the end of the line, and comments are stripped before parsing. A # inside a "…" string or inside a balanced span — a ((...)), a [...], a |...| or a {...} — is data, so a container name like [Loot #3] keeps its #.</p>
+<p>Why: a comment keeps a script readable without touching it — it is stripped before parsing, so it explains a line without changing how it runs.</p>
+<p>A comment line can sit anywhere a statement could, and the parser never sees it:</p>
+<pre class="code-sample" data-highlight="script"><code># roll a grade
+SET Roll = ((1-100))
+EXPOSE Roll</code></pre>
+<h3>Variables</h3>
+<p>Variables have two spellings. A bare name is one token that starts with a letter or underscore, then letters, digits or underscores, with no spaces; it is case-sensitive and never a keyword or a boolean literal. The %name% form takes letters, digits, underscores and spaces, may start with a digit, is trimmed and NFC-normalized before use, and cannot contain % or # — a # inside one fails: the %name% form never terminates. Two spellings of one name that normalize to the same character are refused: a name written once in decomposed form (the letter a followed by a combining acute accent) and once as the composed "á" must be normalized to a single spelling. Keyword spellings are reserved as variable names — a variable with that name is written in %name% form, as in %IF% — and the boolean literals are reserved in both spellings, with no %true% escape: a variable named after a literal is refused. On the left of a SET, EACH and UNIQUE are likewise reserved: a multi-draw keyword is refused as a variable name.</p>
+<p>Why: the two spellings let one script mix short bare names with long spaced ones — %hero name% is a single variable with a space in it, and each name keeps its own value.</p>
+<p>Both spellings can live in one script — each EXPOSE hands its value to the run:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Hero = "Kael"
+SET %hero name% = "Vessa"
+EXPOSE Hero
+EXPOSE %hero name%</code></pre>
+<h3>Value forms</h3>
+<p>Every value on the right of a SET, every CASE label, and every condition operand is one of these: a number — an optional sign, digits, and at most one decimal point, no exponent and no separators, so 1e5 is invalid; a string in double quotes, where there is no escape mechanism, the first closing quote ends it, and a missing one leaves the string open; the boolean literals true and false, lowercase only — True or TRUE are ordinary names, not booleans; a name, referring to a variable that already holds a value; an inline expression ((...)); or, only as a SET value or as a SWITCH subject, ROLL. A bare span is not a value: SET x = |1d6| and SET x = [Loot] are both invalid values — spans roll only when ROLL introduces them.</p>
+<p>Why: the six forms cover every value a script can hold — a number for conditions, a string for labels, a boolean for flags, a name to pass a value on, an inline pick to choose from, and a ROLL to draw.</p>
+<p>All four value forms in one script — number, string, boolean, and a name:</p>
+<pre class="code-sample" data-highlight="script"><code>SET N = 42
+SET S = "42"
+SET B = false
+SET M = N
+EXPOSE N
+EXPOSE S
+EXPOSE B
+EXPOSE M</code></pre>
+<h3>Inline expressions ((...))</h3>
+<p>An inline expression ((...)) is a pick, never arithmetic. With no pipe it is an inclusive integer range — ((1-100)) draws a whole number from 1 to 100 — or, holding neither pipes nor a range, a single option that always resolves to its own text; a range whose minimum exceeds its maximum fails. With pipes it is a weighted choice: the options are separated by |, each is a plain label or a label:weight pair with a whole-number weight, and the pick lands on one option by weight, whose label — as text — replaces the expression.</p>
+<p>Why: an inline expression keeps a pick inside the script text itself — a range or a weighted choice, with no roll and no table behind it.</p>
+<p>A weighted choice with plain and weighted options:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Grade = ((A | B:2 | C))
+EXPOSE Grade</code></pre>
+<h3>SET</h3>
+<p>SET takes one or more unique names on the left and one or more value forms on the right. With a single value form, the source is evaluated once and broadcast to every name; with as many value forms as names, the forms are paired by position and each evaluated once, and mixed forms in one paired list are allowed. The keywords are exact uppercase — a lowercase Set is refused — an unknown leading word is refused, and a line separated with ; fails because statements go one per line. A bare x = y is not an assignment and is refused, a name repeated on the left is refused, and a right side that matches neither one nor the name count is refused.</p>
+<p>Why: SET is the only assignment the script language has — a bare x = y is refused — and the broadcast and paired forms let one line set one name or several.</p>
+<p>A dice roll stored as text beside a paired SET of two strings:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Hit = ROLL |1d20|
+SET Ally, Rival = "Kael", "Vessa"
+EXPOSE Hit
+EXPOSE Ally
+EXPOSE Rival</code></pre>
+<p>A paired list can also mix value forms, one per name:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Fire, Frost = "ember", ((1-100))
+EXPOSE Fire
+EXPOSE Frost</code></pre>
+<h3>ROLL</h3>
+<p>ROLL comes in three forms and is evaluated exactly once, its result stored in the variable: ROLL ((range)) stores a number, ROLL ((choice)) stores the picked label as text, and ROLL [container] or ROLL |dice| store text — a container draw through the tables' picking rules, or a dice or macro result, as the roll bar computes it. Reading the variable again never rerolls. ROLL belongs only in a SET value or as the SWITCH subject: a lone ROLL line is refused, a ROLL in a condition is refused — a variable with that name is written in %name% form, as in %ROLL% — and a ROLL in a CASE label is refused.</p>
+<p>Why: ROLL is the bridge between a script and the roll bar — a range, a choice, a container, or dice — evaluated once and stored, so reading the variable again never rerolls.</p>
+<p>The [Chest] span in the examples below assumes a container named Chest exists in your tables/ folder — the shipped containers are Chest, Backpack, and Oracle.</p>
+<p>A range roll stores a number; a container roll stores the picked label as text:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Pick = ROLL ((1-100))
+SET Find = ROLL [Chest]
+EXPOSE Pick
+EXPOSE Find</code></pre>
+<h3>EACH ROLL</h3>
+<p>The two multi-draw forms are valid only as the sole value of a SET. EACH ROLL takes any draw source — [container], ((...)) or |dice| — and draws one independent draw per name, with replacement, so duplicates are allowed; a malformed form is refused: EACH ROLL must take a draw source.</p>
+<p>Why: use EACH ROLL when each name must get its own fresh draw — three names, three separate rolls, and duplicates are allowed because each draw is independent.</p>
+<p>EACH ROLL draws the same inline range independently once per name:</p>
+<pre class="code-sample" data-highlight="script"><code>SET A, B, C = EACH ROLL ((1-100))
+EXPOSE A
+EXPOSE B
+EXPOSE C</code></pre>
+<h3>UNIQUE</h3>
+<p>UNIQUE [container] takes container sources only and draws N distinct rows without replacement, where N is the number of names on the left; a non-container source is refused, and either form used alongside another value is refused: it must be the SET's only value. In a generator run the drawn rows come from a pool shared across the whole run, so a container that cannot supply them fails when it has too few drawable rows.</p>
+<p>Why: use UNIQUE when the names must end up distinct — one container, no replacement, so every name gets a row no other name got.</p>
+<p>UNIQUE draws three distinct rows from one container into three variables:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Weapon, Armor, Trinket = UNIQUE [Chest]
+EXPOSE Weapon
+EXPOSE Armor
+EXPOSE Trinket</code></pre>
+<h3>IF</h3>
+<p>IF cond THEN starts a branch, and its body is either a : plus an indented block or exactly one inline statement — SET, IMPORT or EXPOSE; a nested IF or SWITCH needs an indented block, an empty body is refused, and a nested statement inline is refused — use an indented block. ELSE IF cond THEN: and ELSE: each start their own line at the same indent as the IF, and the chain is one IF: an ELSE with no matching IF is refused, an ELSE IF after the final ELSE is refused, and a second bare ELSE is refused.</p>
+<p>The condition is a comparison joined with AND, OR and single-parenthesis grouping: each AND operand is a comparison — operand == operand, operand != operand, operand &gt; operand, operand &lt; operand, operand &gt;= operand or operand &lt;= operand — and an atom with no comparison, a bare true or a name standing alone, is refused: a condition must compare two operands.</p>
+<p>== and != require the same type — the string "5" and the number 5 are different types, so they cannot be compared with "==" or "!=". &gt;, &lt;, &gt;= and &lt;= are numeric only, and a string qualifies only if its whole text is a number. A boolean cannot be used with those operators.</p>
+<p>One condition line may use at most 500 tokens — split it with intermediate variables — and grouping is a single pair of parentheses around a joined condition, as in (a == 1 OR b == 2) — a doubled pair like ((a == 1)) is not a grouping form and is refused.</p>
+<p>Why: a branch is how a script picks one value from several — the condition decides which body runs, and the rest is skipped.</p>
+<p>A grading chain with block bodies:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Roll = ((1-100))
+IF Roll &gt;= 95 THEN:
+  SET Grade = "Critical"
+ELSE IF Roll &gt;= 50 THEN:
+  SET Grade = "Good"
+ELSE:
+  SET Grade = "Miss"
+EXPOSE Grade</code></pre>
+<p>An IF body can also be a single inline statement, exactly one per branch:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Roll = ((1-100))
+IF Roll &gt;= 95 THEN SET Grade = "Critical"
+ELSE SET Grade = "Miss"
+EXPOSE Grade</code></pre>
+<h3>THEN</h3>
+<p>THEN comes only in an IF header, right after the condition: an IF line whose condition has no THEN is refused, and a THEN used as a statement of its own is refused. The body after the THEN, a : plus an indented block or exactly one inline statement, is the branch that runs when the condition is true, and only the selected branch runs; the IF section's grading chain example shows it in use.</p>
+<p>Why: THEN marks where the true-branch body starts — everything after it, up to the matching ELSE or the next statement at the IF's indent, runs only when the condition is true.</p>
+<p>The true-branch body can be one inline statement right after the THEN:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Roll = ((1-100))
+IF Roll &gt; 50 THEN SET Hi = "high"
+ELSE SET Hi = "low"
+EXPOSE Hi</code></pre>
+<h3>ELSE</h3>
+<p>ELSE: and ELSE IF cond THEN: each start their own line at the same indent as the IF, attaching to it, and an ELSE with no matching IF is refused. The ELSE body runs when the condition, and every ELSE IF condition, is false, and only the selected branch runs. A chain is one IF: an ELSE IF after the final ELSE is refused, an ELSE IF missing its THEN is refused, a second bare ELSE is refused, and an ELSE with no body is refused. The IF section's grading chain example shows the full form.</p>
+<p>Why: ELSE is the fallback branch when nothing matched — the condition and every ELSE IF condition are false, so the run lands in the ELSE body instead of leaving the value unset.</p>
+<p>The fallback body sits under an ELSE: line at the IF's indent:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Roll = ((1-100))
+IF Roll &gt; 50 THEN:
+  SET Hi = "high"
+ELSE:
+  SET Hi = "low"
+EXPOSE Hi</code></pre>
+<h3>AND</h3>
+<p>AND joins one or more comparisons, and the condition is true only when every comparison is true.</p>
+<p>AND and OR do not short-circuit: every comparison on the line is evaluated, so a variable with no value fails the run even when an earlier comparison already decides the condition — it was either never assigned or not reached on the path the run took.</p>
+<p>Why: AND is the branch for tests that must all pass — every comparison on the line is checked, and the body runs only when every one of them is true.</p>
+<p>All comparisons are evaluated before the branch is chosen:</p>
+<pre class="code-sample" data-highlight="script"><code>SET A = ((1-100))
+SET B = ((1-100))
+IF A &gt;= 50 AND B &gt;= 50 THEN:
+  SET Verdict = "both high"
+ELSE:
+  SET Verdict = "not both"
+EXPOSE Verdict</code></pre>
+<h3>OR</h3>
+<p>OR joins one or more comparisons, and the condition is true when at least one comparison is true. Like AND, it does not short-circuit: every comparison on the line is evaluated before the branch is chosen.</p>
+<p>Why: OR is the branch for tests where any one part passing is enough — one true side takes the branch.</p>
+<p>One true side is enough to take the branch:</p>
+<pre class="code-sample" data-highlight="script"><code>SET A = ((1-100))
+SET B = ((1-100))
+IF A &gt;= 90 OR B &gt;= 90 THEN:
+  SET Verdict = "one high"
+ELSE:
+  SET Verdict = "neither"
+EXPOSE Verdict</code></pre>
+<h3>SWITCH</h3>
+<p>SWITCH value: switches on a value — any value form, including ROLL — and the CASE case-value: blocks inside it sit indented below the SWITCH.</p>
+<p>A missing : after the subject is refused, a second DEFAULT is refused, and a switch with neither is refused.</p>
+<p>Why: a SWITCH reads cleaner than a chain of IFs when one value can take several paths — one subject up top, one block per case.</p>
+<p>An IMPORT reads a value supplied for the run, and a SWITCH classifies it — CASE 0 and CASE 1 match only the numbers 0 and 1, everything else falls to DEFAULT:</p>
+<pre class="code-sample" data-highlight="script"><code>IMPORT %base_damage%
+SET Damage = base_damage
+SWITCH Damage:
+  CASE 0:
+    SET Verdict = "none"
+  CASE 1:
+    SET Verdict = "scratch"
+  DEFAULT:
+    SET Verdict = "hurt"
+EXPOSE Verdict</code></pre>
+<h3>CASE</h3>
+<p>A CASE label is a number, string, boolean, name or inline, never ROLL — a roll in a label is refused — and a range or multi-option ((...)) label is refused at run time: a label must be one value that can be compared.</p>
+<p>Matching is strict and type-aware: CASE 1 matches only the number 1, never the string "1", and CASE 1 alongside CASE 1.0 is refused as a duplicate.</p>
+<p>A SWITCH on ROLL |1d20| compares against string labels, because a dice roll stores its result as text — CASE "6": can match, CASE 6: cannot.</p>
+<p>When no CASE matches and there is no DEFAULT, the switch assigns nothing at all, and a later read of the variable fails because it holds no value on that path.</p>
+<p>Why: a CASE is a named branch for one exact value — a drawn label or a stored number routes straight to the body that handles it.</p>
+<p>A CASE block runs when its label matches the switched value exactly:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Label = ((Red | Blue))
+SWITCH Label:
+  CASE "Red":
+    SET Verdict = "red"
+  CASE "Blue":
+    SET Verdict = "blue"
+  DEFAULT:
+    SET Verdict = "other"
+EXPOSE Verdict</code></pre>
+<h3>DEFAULT</h3>
+<p>A DEFAULT: block is the branch that runs when no CASE label matches the switched value. It can appear at most once — a second DEFAULT is refused — and a SWITCH with neither a CASE nor a DEFAULT is refused.</p>
+<p>Why: a DEFAULT is the catch-all — when the switched value matches no label, the script still lands somewhere instead of leaving the variable unset.</p>
+<p>With a CASE and a DEFAULT together, a dice roll stores its result as text, so the CASE label must be a string:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Roll = ROLL |1d6|
+SWITCH Roll:
+  CASE "1":
+    SET Verdict = "one"
+  DEFAULT:
+    SET Verdict = "more"
+EXPOSE Verdict</code></pre>
+<h3>IMPORT</h3>
+<p>IMPORT takes a %name% and pulls that value into the run — from the test panel's input fields, or from an earlier result in a generator run; anything other than %name% is refused, and a name with no value is refused until it is supplied for the run.</p>
+<p>Why: IMPORT is how a script takes outside input — the test panel's fields in isolation, earlier results in a generator run — so the same script can be tuned per run.</p>
+<p>The imported value can be read by name like any other variable:</p>
+<pre class="code-sample" data-highlight="script"><code>IMPORT %luck%
+SET Bonus = luck
+EXPOSE Bonus</code></pre>
+<h3>EXPOSE</h3>
+<p>EXPOSE takes one name and hands the variable to the run's value channel, where later operations' IMPORTs and an Output Template's %name% spans read it; EXPOSEing the same name twice exposes it once.</p>
+<p>Why: EXPOSE is the hand-off from a script to the outside — the test panel's chips, a generator run's value channel, and an Output Template's %name% spans all read what was exposed.</p>
+<p>The script below stores a value and exposes it twice:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Name = "Kael"
+EXPOSE Name
+EXPOSE Name</code></pre>
+<h3>true and false</h3>
+<p>The boolean literals true and false are lowercase only — True or TRUE are ordinary names, not booleans. SET stores a literal in a variable like any other value, and a stored boolean is tested in a condition with == or !=, but never with &gt;, &lt;, &gt;= or &lt;=. Both spellings are reserved as variable names, with no %true% escape, so a variable cannot be named true or false.</p>
+<p>Why: a boolean flag is the simplest branch input — no roll and no number behind it, just == true or == false to steer the script.</p>
+<p>A stored boolean is tested with == in a condition:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Flag = true
+IF Flag == true THEN:
+  SET Verdict = "on"
+ELSE:
+  SET Verdict = "off"
+EXPOSE Verdict</code></pre>
+<h3>Indentation and nesting</h3>
+<p>Indentation is counted per character: a block's indent is fixed by its first line, a tab counts as one column, and any Unicode whitespace indents. An indented top-level line fails, a line deeper than its block's fixed indent fails, and a header with no statements under it fails: the block must not be empty. Nesting is capped twice: the parser accepts blocks at most 31 levels deep — a block at the 32nd level fails — while the evaluator stops execution at 8, so a script that nests 8 or more levels parses, then fails the run.</p>
+<p>Why: the fixed indent is the block's grammar — matching it exactly is what separates a statement from the block it belongs to, and the two caps keep deep scripts failing with a clear message.</p>
+<p>Each block indents its statements below its header, and the indent is fixed by the block's first line:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Flag = true
+IF Flag == true THEN:
+  IF Flag == true THEN:
+    SET Depth = "two"
+  ELSE:
+    SET Depth = "one"
+ELSE:
+  SET Depth = "zero"
+EXPOSE Depth</code></pre>
+<p>Twenty-two complete scripts, each verified against the parser and evaluator, close the reference.</p>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-prev" href="generator.html">← Generators</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dice — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html">Intro</a>
+<a href="dice.html" class="current" aria-current="page">Dice</a>
+<a href="macros.html">Macros</a>
+<a href="tables.html">Tables</a>
+<a href="generator.html">Generators</a>
+<a href="logic.html">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="dice" class="help-section">
+<h2>Dice</h2>
+<p>The roll bar accepts expressions built from dice rolls, plain numbers, and the operators +, -, * and /. Whitespace is ignored and letters are case-insensitive, so 1 d 2 0 + 5 works; because spaces are stripped, 2d6 6 is read as 2d66 — you probably meant 2d6+6. The roll bar also accepts the name of a macro from the Macros tab — see <a href="macros.html">Macros</a> for how that matching works.</p>
+<h3>NdM — a basic roll</h3>
+<p>A basic roll is NdM — N dice with M sides, each a whole number of at least 1. You can roll up to 1,000,000 dice, and the number of sides has no upper limit. Every expression is built from these terms, so this is the notation to know first.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6
+1d20
+3d12</code></pre>
+<h3>Bare dN — one die</h3>
+<p>A bare dN is one die, so d20 means 1d20. It is shorthand for the case you type most often — a single roll.</p>
+<pre class="code-sample" data-highlight="script"><code>d20</code></pre>
+<h3>Multiple dice</h3>
+<p>Combine as many rolls and numbers as you like: 2d6+1d6 adds two different rolls, and a plain number adds a fixed amount. Use it to bundle an attack roll with a damage roll, or a roll with a flat bonus, in one line.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6+1d6
+4d6+2d8</code></pre>
+<h3>+ - * / — arithmetic</h3>
+<p>The four arithmetic operators work as you would expect: * and / bind tighter than + and -, and each level is left-associative. Division does not round, so 4d6/2 can be 7.5. There is no modulo, no exponentiation, and no unary minus: an expression cannot start with + or -.</p>
+<pre class="code-sample" data-highlight="script"><code>1d20+5
+4d6/2
+2d6*3</code></pre>
+<h3>Parentheses</h3>
+<p>Parentheses group as usual: (1d10+1)*2 adds the 1 before multiplying. Use them to override the default precedence, where * and / would otherwise bind first.</p>
+<pre class="code-sample" data-highlight="script"><code>(1d10+1)*2</code></pre>
+<h3>Literals</h3>
+<p>Plain numbers — literals — can appear anywhere a value can: 2d6+7 adds a fixed 7, and a literal may even be fractional, so 2d6+1.5 is a valid expression. A bare number like 5 on its own is not a roll — an expression must contain at least one dice term.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6+7
+2d6-3
+2d6+1.5</code></pre>
+<h3>r — reroll ones</h3>
+<p>Append r to a dice roll to reroll ones: any die showing a 1 is rolled again, exactly once, before explosions are resolved. Use it where a 1 is too bad to keep — each die gets exactly one retry, and a second 1 stays.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6r</code></pre>
+<h3>x — explosions</h3>
+<p>Append x to explode a roll: a die landing on its maximum is rolled again and the new result is added to it, and the chain continues while the maximum keeps coming. A dice roll is capped at 1,000 extra rolls in total. Use it for rolls where a maximum face should snowball.</p>
+<pre class="code-sample" data-highlight="script"><code>1d20x</code></pre>
+<h3>khN — keep highest</h3>
+<p>Append khN to keep only the N highest dice of the roll and sum them, after rerolls and explosions. N must be a whole number from 1 to the number of dice, so 2d6kh5 is an error. In a tie, the die rolled first is kept. Use it when only the best of several dice counts.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6kh1
+4d6kh2</code></pre>
+<h3>klN — keep lowest</h3>
+<p>Append klN to keep only the N lowest dice of the roll and sum them, after rerolls and explosions — the same rules as khN: N must be a whole number from 1 to the number of dice, and in a tie the die rolled first is kept. Use it when only the worst of several dice counts.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6kl1</code></pre>
+<h3>csN — count successes</h3>
+<p>Append csN to count successes: the roll's value is the number of dice showing at least N after rerolls and explosions — a count, not a sum. The target is a whole number from 0 to the die's maximum face, so 2d6cs7 is an error and 2d6cs0 counts every die. Use it for success-count mechanics where each die meeting the target counts one.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6cs5
+1d20cs15
+2d6cs0</code></pre>
+<h3>Combining modifiers</h3>
+<p>Modifiers attach to a single dice roll: at most one r, at most one x, and at most one of kh, kl or cs per roll, in any written order — they are always applied in the order reroll, explode, then keep or success. A second keep-style modifier on the same roll is a parse error: 2d6kh1cs5 is invalid because one term takes at most one keep-style modifier.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6rx
+2d6rkh1
+3d8xkh2</code></pre>
+<h3>Advantage and disadvantage</h3>
+<p>Advantage and disadvantage are not part of the expression; they are the Normal, Advantage, and Disadvantage buttons of the roll bar. The whole expression is rolled twice and the higher (Advantage) or lower (Disadvantage) result is kept. If the expression already contains kh or kl, the roll is computed in Normal mode — rolled once, with no second roll — while the mode button keeps its highlight until you click another mode. Only kh and kl stop the double roll — r, x, and cs still roll twice.</p>
+<h3>Parse failures</h3>
+<p>When an expression cannot be parsed, the roll bar shows a message instead of a result. 2d6q fails because q is not a supported modifier (kh, kl, x, r, cs). Typical failures: 2d with no sides, 0d6, 1.5d6, a missing closing parenthesis, and division by zero. An expression with no dice at all fails the same way — 5 on its own fails because it contains no roll.</p>
+<pre class="code-sample" data-highlight="script"><code>2d6q
+2d
+0d6</code></pre>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-prev" href="help.html">← Intro</a>
+<a class="pager-next" href="macros.html">Macros →</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

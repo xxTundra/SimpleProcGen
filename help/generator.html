@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generators — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html">Intro</a>
+<a href="dice.html">Dice</a>
+<a href="macros.html">Macros</a>
+<a href="tables.html">Tables</a>
+<a href="generator.html" class="current" aria-current="page">Generators</a>
+<a href="logic.html">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="generator" class="help-section">
+<h2>Generators</h2>
+<h3>The Generators tab</h3>
+<p>Generator files live in the generators/ folder, each a plain JSON file. The file's top level is an object with a single "items" array; each item is a generator with a name, an optional description, the template text, and a mode. The app assigns each generator an id and maintains the reference, operation, occurrence, and binding records the template uses. The Generators tab lists every file with a search box, and the toolbar has "+ new generator file" (asks for a name without the .json and creates an empty file), "export all", "export all + containers", "import…", and Help. Each file block shows its path, the number of generators in it, and a "+ add generator" button; each generator card shows the name, the description, a chip per template token, and the buttons Run, Edit, Rename, Duplicate, Delete, and Export. A container token's chip reads [token] → ContainerName when it resolves and ⚠ [token] when it does not; a logic-operation token's chip reads ⚠ {token} when its operation does not resolve.</p>
+<h3>Editing a generator</h3>
+<p>Editing a generator opens the editor: a name field, a description field, a mode dropdown, and the template field, whose placeholder reads Free text, [container name] to roll a container, or |1d6| to roll dice…. As you type, a [ offers container names, a | offers macro names (<a href="macros.html">Macros</a>) and the dice presets 1d4, 1d6, 1d8, 1d10, 1d12, 1d20, and a { lists logic operations; the Insert container… and Insert logic… buttons open pickers that insert the chosen token at the caret.</p>
+<p>Run resolves the template and shows the output in the result area, where each part is color-coded — plain text, rolled values, chosen options, container references, and operation outputs, with a failed span in red — with Generate again, Copy, and Roll details below it. Roll details lists every container draw: the token, the container, the occurrence number, the picked label, the weight, and its position in the template.</p>
+<p>The Validation panel lists template problems by token before a run, such as no container with this name or no logic operation with this name.</p>
+<h3>Scanner rules</h3>
+<p>A template is free text with spans in it. It is scanned left to right in a single flat pass, and at each position the earliest opener starts a span. Exactly four openers exist: [ closes at the next ], | closes at the next |, (( closes at the first )), and { closes at the next }. A span never contains another span — inside a span, every other opener is literal data. A single ( never opens anything, an opener with no matching closer is left as plain text, and everything else in the template is literal, including %name%: the percent sign is not an opener, so a bare %name% in a template is never resolved.</p>
+<h3>Basic mode</h3>
+<p>Mode is a per-generator setting, basic or advanced, chosen in the editor's mode dropdown and defaulting to basic. Switching modes changes only the mode field: the template, references, bindings, and variables are untouched, and both modes run through the same resolution, which never reads the mode, so every span form below is available in both modes.</p>
+<p>Why: basic mode is the default, and both modes run through the same resolution, so a basic template gets every span form below, with no bindings or operation panels to configure.</p>
+<p>The [Backpack], [Weapon], [Loot], and [Chest] spans in the examples below assume those containers exist in your tables/ folder — the shipped containers are Chest, Backpack, and Oracle.</p>
+<pre class="code-sample" data-highlight="script"><code>Your pack holds [Backpack]</code></pre>
+<h3>Advanced mode</h3>
+<p>Advanced mode adds two panels. The Bindings panel has one row per occurrence of a span in the template — a container reference, an operation span, a dice or macro embed, or an inline pick — and each row can be given a variable name, with a name left empty keeping that result unexposed; logic-operation rows get one field per EXPOSE variable of the operation, prefilled with the variable name. The Operation preview panel shows each operation span as token → value from the last successful run.</p>
+<p>Why: advanced mode is for templates whose spans must hand values to each other — a {name} span runs an operation that does its own rolling and exposing, and the two added panels show each span's result from the last run.</p>
+<p>This template assumes an operation named Hero in your Logic tab:</p>
+<pre class="code-sample" data-highlight="script"><code>A {Hero} packing [Backpack]</code></pre>
+<h3>[name] — a container span</h3>
+<p>A [name] span picks one entry from a container by weight — the same picker the tables use — and is replaced by the picked entry's label after that label is resolved the same way, so a picked entry can itself contain spans. The name is trimmed and matched case-insensitively, and every occurrence of the span rolls independently: two [Weapon] tokens in one template roll twice.</p>
+<p>Why: a container span turns one token into a whole weighted draw, so the same template picks a different entry every run and the table holds the options, not the template.</p>
+<pre class="code-sample" data-highlight="script"><code>A rogue with a [Weapon] and [Loot] in it</code></pre>
+<p>Failures: an unknown name fails because no container with that name exists — create one or fix the token. Two or more containers sharing the name fail because the token is ambiguous — rename one. A matched container with no positively weighted entries fails because it has no entry to draw. An empty [] token fails because no container name sits between the brackets. The same failures reached inside a picked entry's label use the embedded-value prefix instead.</p>
+<h3>|...| — a dice or macro span</h3>
+<p>A |...| span is a value: either a dice expression, evaluated by the same dice engine as the roll bar in its current mode, or the name of a macro from the Macros tab, matched case-insensitively, with the first match in macro order winning. The span is replaced by the result of the evaluation as text. An empty span fails. A span that holds neither a macro nor a valid dice expression fails. A macro whose own formula is invalid fails.</p>
+<p>Why: a dice or macro span puts a roll directly in the template text, so a template can carry its own numbers without any table.</p>
+<pre class="code-sample" data-highlight="script"><code>|2d6+3|
+|sword|</code></pre>
+<h3>((...)) — an inline pick span</h3>
+<p>A ((...)) span is a pick, never a roll: it never evaluates dice or expressions. With no pipe inside, it is either a range or a single option: ((2-5)) picks a uniform whole number from 2 to 5 inclusive, where each bound may carry an optional sign, and a ((...)) that holds neither pipes nor a number range is a one-option pick that always resolves to its own text. With pipes, the span is a weighted choice list: options are separated by |, each is a plain label (weight 1) or a label:weight pair with a whole-number weight, and the pick lands on one option by weight — the option's label replaces the span. An empty span fails, as do an option with no label, a weight that is not a whole number, and a choice whose weights all total zero. A range whose minimum exceeds its maximum fails. A range that is not two integers fails.</p>
+<p>Why: an inline pick span keeps small choices inside the template — a range or a weighted list that needs no table, no macro, and no roll.</p>
+<pre class="code-sample" data-highlight="script"><code>((2-5))
+((Healing | Fire Resistance | Paralyze))
+((Rare:1 | Common:3))</code></pre>
+<h3>{name} — a logic operation span</h3>
+<p>A {name} span runs a logic operation and is replaced by the operation's output. The name is trimmed and first matched against the operation references the generator stores — one per distinct operation in the template, recorded when the token is inserted — and then against the Logic tab's operations, where only an exactly unique name match, case-insensitive, resolves. A name that matches no operation fails: add one with the Insert logic button, or fix the {token}. An operation that exists but is not executable fails because it cannot be run. An empty {} token fails because no operation name sits between the braces.</p>
+<p>Why: a logic-operation span is where the template meets the logic language — the operation does the rolling and the assigning in its own script, and the span prints its output template.</p>
+<pre class="code-sample" data-highlight="script"><code>A {Hero} with {Gear}</code></pre>
+<h3>Nesting rules</h3>
+<p>The spans mix freely in one template, in any order. Container entries can contain spans: when a [name] span picks an entry, the entry's label is resolved the same way, and any spans in it are rolled too. A logic operation's script can roll spans — ROLL [container], ROLL ((...)), and ROLL |dice| — and the labels those rolls pick are resolved the same way, while an operation's Output Template resolves no spans at all. Dice, macro, and inline spans cannot contain anything: the pass is flat. Nesting is bounded: reference chains are budgeted at 8 levels of nesting, 1,000 picks, and 100,000 characters of output per run, and operations are capped at 4 nested levels. A reference chain that comes back to a container already in the chain fails — break the loop by removing one reference. An operation that calls back into itself fails — break the loop by removing one call.</p>
+<p>Why: the budgets keep every run finite — 8 levels of nesting, 1,000 picks, and 100,000 characters of output — and the cycle checks turn a self-referencing chain into a clear error.</p>
+<p>The same span language works inside a logic operation's script, where a ROLL stores the draw in a variable:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Pack = ROLL [Backpack]
+EXPOSE Pack</code></pre>
+<h3>Resolution chain</h3>
+<p>Variable names live outside the template. In advanced mode, the Bindings panel gives a name to any span's result, and a logic operation's script can EXPOSE its own variables; those names — the bound span results and the operations' EXPOSE variables — are read by logic operations: IMPORT %name% inside a script, and %name% in an operation's Output Template, where only %name% spans are substituted and everything else — including ((...)), [...], and {...} — stays literal. A %name% in an output template with no value fails the run, reported at the {token} span of the operation that used it.</p>
+<p>When a template uses several spans, the run is a single left-to-right walk. Each span is resolved exactly once, at its own position, in the order written — nothing is pre-rolled, cached, or reordered, and a second occurrence of the same [A] or {Op} span rolls (or re-runs) again, independently. As spans resolve, the results that carry a variable name — the occurrences given one in the Bindings panel and each operation's EXPOSE variables — accumulate in a run-wide value channel in template order. A logic operation later in the walk can therefore read an earlier result: an IMPORT of a name already produced by the run reuses the stored value and never rolls again. An IMPORT of a name not yet produced — unknown, or produced by a span later in the walk — is a forward dependency: it is reported, the run fails at that span because nothing earlier in the run supplied a value, and the walk is never reordered to make the import work.</p>
+<p>A failed run shows the message of every failing span at once, in the order they were reached. A span that fails inside a picked container label uses the embedded-value messages of the Tables section, ending with the chain that reached it when it happened inside a nested reference. A logic operation whose script fails reports that failure at its {token} span, and a template that fails outside any span shows that the template could not be run.</p>
+<p>Why: the walk order is what decides when a value is available — a span's result is exposed at its own position, and an IMPORT only sees what the parts before it already produced.</p>
+<p>Each occurrence of the same span rolls again, in place, as the walk reaches it:</p>
+<pre class="code-sample" data-highlight="script"><code>Roll [Backpack] twice: [Backpack] and [Backpack]</code></pre>
+<h3>SET forms</h3>
+<p>Logic operations called from a template draw values with SET. A SET line is SET followed by one or more names separated by commas, then =, then one or more value forms separated by commas; the keywords are exact uppercase, and a name may appear only once per SET. With several names and a single value form — the broadcast form — the source is evaluated once and the same result is assigned to every name. With as many value forms as names, the forms are paired by position and each is evaluated once. The two multi-draw forms, EACH ROLL and UNIQUE, are valid only as the sole right-hand value. The authoritative statement of these forms is the <a href="logic.html">Logic</a> page's SET section, followed by the EACH ROLL and UNIQUE sections.</p>
+<p>EACH ROLL takes a draw source — [container], ((...)), or |dice| — and draws one independent draw per name, with replacement, so duplicates are allowed: SET A, B, C = EACH ROLL [Weapon] draws the container three separate times. UNIQUE [container] draws N distinct rows without replacement, where N is the number of names on the left; it accepts container sources only. The drawn rows are removed from a pool shared across the whole generator run, so distinctness holds across every operation in the run, and case-variant spellings of the same container share one pool. A container that cannot supply enough rows fails: the group needs more rows than the container can draw.</p>
+<pre class="code-sample" data-highlight="script"><code>SET Bonus = ROLL |1d6+1|
+SET Fire, Frost = ROLL |1d8|
+SET W1, W2, W3 = EACH ROLL [Weapon]
+SET A, B, C = UNIQUE [Chest]</code></pre>
+<p>SET failures are self-contained: a value-form count that matches neither one nor the name count fails, a name repeated in one SET fails, a malformed EACH form fails, and a UNIQUE without a container fails.</p>
+<p>Why: SET is where a script's values come from — every right side is one value in its whole form, and the paired form and the two multi-draw forms cover drawing one value, several, or a whole row.</p>
+<p>A paired list may also mix value forms, one per name:</p>
+<pre class="code-sample" data-highlight="script"><code>SET Fire, Frost = "ember", ((1-100))
+EXPOSE Fire
+EXPOSE Frost</code></pre>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-prev" href="tables.html">← Tables</a>
+<a class="pager-next" href="logic.html">Logic →</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

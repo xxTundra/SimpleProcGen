@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "id": "gen_9b41c7e2",
+      "name": "Chest Hunt",
+      "description": "Pry open a chest, appraise what is inside, and count the gold — the chest is cursed, and it takes its toll.",
+      "template": "You pry open a chest and find [Chest]. The appraiser calls it {ChestAppraisal}. You also find ((5-30)) gold coins. The chest seems to be cursed, though: opening it drains a bit of your essence, and you take |thunderclap| damage.",
+      "references": [],
+      "operations": [
+        {
+          "token": "ChestAppraisal",
+          "operationId": "op_4d7e9a21",
+          "operationName": "ChestAppraisal"
+        }
+      ],
+      "occurrences": [
+        { "instanceId": "occ_1a2b3c4d", "kind": "ref", "token": "Chest", "refId": "tbl_3fa9c021", "offset": 30 },
+        { "instanceId": "occ_2b3c4d5e", "kind": "op", "token": "ChestAppraisal", "refId": "op_4d7e9a21", "offset": 62 },
+        { "instanceId": "occ_3c4d5e6f", "kind": "inline", "token": "5-30", "refId": null, "offset": 94 },
+        { "instanceId": "occ_4d5e6f70", "kind": "embed", "token": "thunderclap", "refId": "thunderclap", "offset": 207 }
+      ],
+      "bindings": {
+        "occ_1a2b3c4d": "chest"
+      },
+      "mode": "basic"
+    }
+  ]
+}

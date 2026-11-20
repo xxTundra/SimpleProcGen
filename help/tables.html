@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tables — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html">Intro</a>
+<a href="dice.html">Dice</a>
+<a href="macros.html">Macros</a>
+<a href="tables.html" class="current" aria-current="page">Tables</a>
+<a href="generator.html">Generators</a>
+<a href="logic.html">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="tables" class="help-section">
+<h2>Tables</h2>
+<h3>The Tables tab</h3>
+<p>Table files live in the tables/ folder, each a plain JSON file holding one or more containers. The file's top level is an object with a single "items" array; each item is a container — a named group of rows — with an "entries" array and an automatically assigned id (tbl_ plus eight hex digits). Every entry is a row with a label, the text the row displays, and a numeric weight. You only need to write the names, labels, and weights; the app fills in the id and saves files in exactly this shape.</p>
+<pre class="code-sample" data-highlight="script"><code>{
+  "items": [
+    {
+      "name": "Backpack",
+      "entries": [
+        {
+          "label": "Rations x5",
+          "weight": 20
+        },
+        {
+          "label": "|3d8| Gold coins",
+          "weight": 40
+        }
+      ],
+      "id": "tbl_7c7b2efc"
+    }
+  ]
+}</code></pre>
+<p>The Tables tab lists every file in tables/ as its own block, with the file's containers as rows showing the container name and its entry count. A search box narrows containers by name (case-insensitive) and a dropdown narrows the list to a single file. The tab's buttons: "+ new file" asks for a name without the .json and creates an empty file, "export all" downloads every table file — together with the logic operations their entries reference — as one ttrpg-tables.json bundle, "import…" lets you pick one or more .json files to add, and Help opens this page.</p>
+<h3>Editing a container</h3>
+<p>Select a container to edit it. You can rename it — a rename also rewrites every [Name] reference in entry labels across all table files and tells you how many references changed — and you can delete it, which asks for confirmation and first counts the references and generators that would be affected. Each row has a label field, which highlights the recognized spans as you type, a weight field, and a delete button; "+ add entry" appends a row labeled "Entry" with weight 1. At the top of the container panel, the Roll button picks a row and shows the resolved result in the last-roll panel, where each part of the result is color-coded: rolled values, chosen options, container references, and operation outputs; a failed span is shown in red.</p>
+<h3>How a roll picks an entry</h3>
+<p>A roll picks one entry by weight. The picker sums every positive numeric weight, draws one random number across that total, and walks down the rows subtracting weights; the row that drops the number below zero is picked. Rows with a weight of 0, a negative weight, or a non-numeric weight are skipped, so equal weights mean equal odds. If no row carries a positive weight, the roll is refused and the tab tells you to give at least one entry a positive weight.</p>
+<h3>The embedded value resolver</h3>
+<p>A picked label is not shown as-is. Before it is displayed — and before it is recorded in the roll history — it runs through the same embedded-value resolver that generators use, which evaluates every span below in the label. If any span fails, the roll is reported as an error, nothing is added to the history, and the failure is shown right at the span. All failure messages are self-contained and begin with the embedded-value prefix, naming the span (or the container/operation it names); when a failure happens inside a nested reference the message ends with the chain that reached it.</p>
+<h3>Scanner rules</h3>
+<p>Four kinds of span can appear in a label. The label is scanned left to right and the earliest opener starts a span: | closes at the next |, (( closes at the first )), [ at the first ], and { at the first }. Spans do not nest inside one another, a single ( never opens anything, and an opener with no matching closer is left as plain text. Anything else in the label — including %variable% — is literal text and is never resolved inside tables.</p>
+<h3>|...| — dice and macros</h3>
+<p>A |...| span is a value: either a dice expression, evaluated by the same dice engine as the roll bar in its current mode, or the name of a macro from the Macros tab (<a href="macros.html">Macros</a>), matched case-insensitively, with the first match in macro order winning. The span is replaced by the result of the evaluation as text. An empty span fails. A span that holds neither a macro nor a valid dice expression fails. A macro whose own formula is invalid fails.</p>
+<p>Why: a |...| span puts a roll or a macro result directly in the entry's label, so a single entry can carry its own rolled value or a saved formula.</p>
+<pre class="code-sample" data-highlight="script"><code>|2d6+3|
+|sword|</code></pre>
+<h3>((a-b)) — an inline range</h3>
+<p>A ((...)) span is a pick from inline options. With no pipe inside, it is either a range or a single option: ((2-5)) picks a uniform whole number from 2 to 5 inclusive (each bound may carry an optional sign), and a ((...)) that holds neither pipes nor a number range is a one-option pick that always resolves to its own text.</p>
+<p>Why: an inline range keeps the pick inside the label itself — the bounds define the options, so no table has to hold them.</p>
+<pre class="code-sample" data-highlight="script"><code>((2-5))
+((-3-2))</code></pre>
+<h3>((A | B:2)) — a weighted choice</h3>
+<p>With pipes, the span is a weighted choice list: options are separated by |, each is a plain label (weight 1) or a label:weight pair with a whole-number weight, and the pick lands on one option by weight — the option's label replaces the span.</p>
+<p>Why: a weighted choice lets one label hold several options with their own odds, so the pick and its weights live in the table entry.</p>
+<pre class="code-sample" data-highlight="script"><code>((Healing | Fire Resistance | Paralyze))
+((Rare:1 | Common:3))
+((Short Sword:1 | Dagger:1 | Mace:2))</code></pre>
+<h3>((text)) — a single option</h3>
+<p>A ((...)) span with neither pipes nor a number range is a single option: it always resolves to its own text, so ((Flask of oil)) always yields Flask of oil.</p>
+<p>Why: a single option is how a label keeps fixed words fixed — the text always resolves to itself, so it can never be rolled away.</p>
+<pre class="code-sample" data-highlight="script"><code>((Flask of oil))</code></pre>
+<h3>Inline span failures</h3>
+<p>Bad inline spans fail as an empty or invalid inline expression — that covers an empty (( )), an option with no label, a weight that is not a whole number, and a choice whose weights all total zero. A range whose minimum exceeds its maximum fails, and a range that is not two integers fails.</p>
+<h3>[Name] — a container reference</h3>
+<p>A [Name] span pulls one entry from another container and then resolves that entry's label the same way, so references can nest and any spans inside the referenced entry are rolled too. The name is matched case-insensitively, first among containers in the same table file and only if none match there across every file.</p>
+<p>Why: a [Name] span keeps the options in the container that owns them — the reference rolls the whole container, and the picked entry's own spans roll too.</p>
+<pre class="code-sample" data-highlight="script"><code>A backpack with a [Backpack] in it</code></pre>
+<h3>Container reference failures</h3>
+<p>Failures: an unknown name fails — the container must exist, or the reference must be fixed; two or more containers sharing the name in the search scope fail because the name is ambiguous — one must be renamed, or a unique name used; a matched container with no positively weighted entries fails because it has no entry to draw; and an empty [] reference fails. A chain that comes back to a container already in the chain fails — break the loop by removing one reference. Reference chains are budgeted at 8 levels of nesting, 1,000 picks, and 100,000 characters of output; crossing any budget fails: the chain must be shortened.</p>
+<h3>{name} — a logic operation</h3>
+<p>A {name} span runs a logic operation and replaces the span with its output. The name is trimmed and first matched against the operation references the row itself stores — one per distinct operation name in the label, recorded when the label is edited, each remembering the matched operation's id — and then against the Logic tab's operations, where only an exactly unique name match, case-insensitive, resolves. A name that matches no operation, or more than one, fails: add the operation in the Logic tab, or fix the {token}. An operation that exists but is not executable fails because it cannot be run. Operations that call back into themselves fail — break the loop by removing one call. Nested operation calls are capped at 4 levels deep.</p>
+<p>Why: a {name} span lets an entry run a whole logic operation — the operation does its own rolling and exposing, and the span is replaced by its output.</p>
+<p>This label assumes operations named Hero and Gear in your Logic tab:</p>
+<pre class="code-sample" data-highlight="script"><code>A {Hero} with {Gear}</code></pre>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-prev" href="macros.html">← Macros</a>
+<a class="pager-next" href="generator.html">Generators →</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

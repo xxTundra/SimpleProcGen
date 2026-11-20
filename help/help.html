@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html" class="current" aria-current="page">Intro</a>
+<a href="dice.html">Dice</a>
+<a href="macros.html">Macros</a>
+<a href="tables.html">Tables</a>
+<a href="generator.html">Generators</a>
+<a href="logic.html">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="intro" class="help-section">
+<h2>Intro</h2>
+<h3>What TTRPG Tools is</h3>
+<p>TTRPG Tools is a local web app for tabletop roleplaying. The main window has a roll bar at the top — the Normal, Advantage, and Disadvantage buttons next to an expression field — and a tab bar below it: Macros, Tables, Generators, Logic, and Files. Everything runs in your browser, and everything the app stores lives in the app folder as plain JSON files.</p>
+<h3>The modules</h3>
+<p>The app's data lives in plain JSON files in the app folder — the macros in dice-macros/, the tables in tables/, the generators in generators/, and the logic operations in logic-ops/ — and the Files tab lists, uploads, downloads, and deletes them.</p>
+<h3>How the help pages connect</h3>
+<p>Each feature has its own page — Dice, Macros, Tables, Generators, and Logic — and the sidebar on every page links to them, with prev and next buttons at the bottom stepping through the pages in order. The Help button in each of the four features — the roll panel, Tables, Generators, and Logic — opens the matching page in a new tab. The Macros tab has no Help button of its own, so its page is reached via the sidebar.</p>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-next" href="dice.html">Dice →</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>

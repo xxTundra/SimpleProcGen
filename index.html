@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TTRPG Tools</title>
+  <script>
+    // Apply the saved theme before first paint (no flash). Midnight is the
+    // default when nothing is stored.
+    (function () {
+      var t = 'midnight';
+      try {
+        var s = localStorage.getItem('ttrpg-theme');
+        if (s) t = s;
+      } catch (_) { /* storage unavailable — keep default */ }
+      if (t === 'midnight' || t === 'paper' || t === 'ember' || t === 'mono') {
+        document.documentElement.dataset.theme = t;
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>TTRPG Tools</h1>
+    <span id="status-pill" class="pill">Connecting…</span>
+    <select id="theme-select" class="theme-select" aria-label="Theme">
+      <option value="midnight">Midnight</option>
+      <option value="paper">Paper</option>
+      <option value="ember">Ember</option>
+      <option value="mono">Mono</option>
+    </select>
+    <button id="connect-folder" class="btn small" type="button" hidden>Connect folder</button>
+    <div id="status-hint" class="hint" hidden></div>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2 class="panel-title">Roll</h2>
+      <div class="roll-controls">
+        <div class="segmented" role="group" aria-label="Roll mode">
+          <button type="button" class="seg active" data-mode="normal" aria-pressed="true">Normal</button>
+          <button type="button" class="seg" data-mode="advantage" aria-pressed="false">Advantage</button>
+          <button type="button" class="seg" data-mode="disadvantage" aria-pressed="false">Disadvantage</button>
+        </div>
+        <div id="roll-bar">
+          <div class="input-wrap">
+            <input id="roll-input" class="roll-input" type="text"
+                   placeholder="2d6+3, sword -1, or a macro…"
+                   autofocus autocomplete="off" spellcheck="false">
+            <div id="macro-suggest" class="suggest" hidden></div>
+          </div>
+          <button id="roll-btn" class="btn primary" type="button">Roll</button>
+        </div>
+        <button id="examples-btn" class="btn small" type="button">Help</button>
+      </div>
+      <div id="roll-error" class="error" hidden></div>
+      <div id="result-panel" class="result" hidden>
+        <div id="result-value" class="result-value mono"></div>
+        <div id="result-expr" class="result-expr mono"></div>
+        <div id="result-kept" class="result-kept hint" hidden></div>
+        <div id="result-body"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">History</h2>
+        <button id="clear-history" class="btn tiny" type="button">clear</button>
+      </div>
+      <ul id="history-list" class="history-list"></ul>
+      <div id="history-empty" class="hint">No rolls yet.</div>
+    </section>
+
+    <section class="panel">
+      <nav class="tabs" role="tablist" aria-label="Tool sections">
+        <button class="tab active" type="button" data-tab="macros" role="tab" aria-selected="true">Macros</button>
+        <button class="tab" type="button" data-tab="tables" role="tab" aria-selected="false">Tables</button>
+        <button class="tab" type="button" data-tab="generators" role="tab" aria-selected="false">Generators</button>
+        <button class="tab" type="button" data-tab="logic" role="tab" aria-selected="false">Logic</button>
+        <button class="tab" type="button" data-tab="files" role="tab" aria-selected="false">Files</button>
+      </nav>
+      <div id="tab-macros" class="tab-panel" role="tabpanel"></div>
+      <div id="tab-tables" class="tab-panel" role="tabpanel" hidden></div>
+      <div id="tab-generators" class="tab-panel" role="tabpanel" hidden></div>
+      <div id="tab-logic" class="tab-panel" role="tabpanel" hidden></div>
+      <div id="tab-files" class="tab-panel" role="tabpanel" hidden></div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <script src="js/generator-engine.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/toasts.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/dice.js"></script>
+  <script src="js/roll.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/macros.js"></script>
+  <script src="js/templates.js"></script>
+  <script src="js/tables.js"></script>
+  <script src="js/generators.js"></script>
+  <script src="js/import-export.js"></script>
+  <script src="js/files.js"></script>
+  <script src="js/logic-ops.js"></script>
+  <script src="js/logic-language.js"></script>
+  <script src="js/logic-evaluator.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

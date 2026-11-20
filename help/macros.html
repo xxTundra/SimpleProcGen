@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macros — TTRPG Tools</title>
+<link rel="stylesheet" href="help.css">
+</head>
+<body>
+<aside class="help-sidebar">
+<h1 class="help-title">Help</h1>
+<nav class="help-nav" aria-label="Help sections">
+<a href="help.html">Intro</a>
+<a href="dice.html">Dice</a>
+<a href="macros.html" class="current" aria-current="page">Macros</a>
+<a href="tables.html">Tables</a>
+<a href="generator.html">Generators</a>
+<a href="logic.html">Logic</a>
+</nav>
+</aside>
+<main class="help-main">
+<section id="macros" class="help-section">
+<h2>Macros</h2>
+<h3>What a macro is</h3>
+<p>A macro is a named dice expression: a saved formula you can call by name from the roll bar and from |...| spans in table entries and generator templates. Macro files live in the dice-macros/ folder; each file's top level is an object with a single "items" array, and each item is a macro with a name, an optional label, and a formula.</p>
+<pre class="code-sample" data-highlight="script"><code>{
+  "items": [
+    {
+      "name": "sword",
+      "label": "Sword",
+      "formula": "1d20+5"
+    }
+  ]
+}</code></pre>
+<p>The label is display text; where it is empty the app uses the name instead. The name is what the roll bar and the |...| spans match against.</p>
+<h3>The Macros tab</h3>
+<p>The Macros tab lists every file in dice-macros/ as its own block, showing the file's path, its macro count, and a "+ add macro" button. The tab's buttons: "+ new file" asks for a name without the .json and creates an empty file, "export all" downloads all macro files as one ttrpg-macros.json bundle, and "import…" lets you pick one or more .json files to add. With no macro files the tab shows an empty-state notice telling you to click "+ new file" or drop a JSON file anywhere on the page.</p>
+<h3>Macro rows and their fields</h3>
+<p>Each macro is a row with three text fields and a delete button, in this order: a name field (placeholder name (used for lookup)), a label field (placeholder label (display, optional)), and a formula field (placeholder formula, e.g. 1d20+5). There is no rename button and no test button — a rename is made by editing the name field, and every change to a field commits the row.</p>
+<h3>Storage and lookup order</h3>
+<p>Files are listed by path in lexicographic order, and macros within a file in the order they appear in the file; that same order is the macro order used for every lookup, so when two macros share a name the first one in that order is the one that matches.</p>
+<h3>Macro names in the roll bar</h3>
+<p>The roll bar accepts a macro name in place of an expression. The input is trimmed, and a macro name must start the whole input, matched case-insensitively, with the character after the name being the end of the input, whitespace, or one of + - * / ( — so the macro fire never matches the input fireball. When more than one name matches, the longest name wins. The matched formula is wrapped in parentheses and the rest of the input is appended after a space: with sword as 1d20+5, the input sword 1d6 rolls (1d20+5) + 1d6 and sword-1 rolls (1d20+5) - 1 — a + is inserted only when the rest starts with a digit or an opening parenthesis, and a leading operator gets a space after it. With the same macro, sword*2 rolls (1d20+5) * 2. The roll bar shows the input with an arrow to the combined expression (sword → (1d20+5)), and the combined expression is what gets rolled, in the current mode.</p>
+<p>Why: a macro name in the roll bar stands in for the whole formula, so the saved expression is rolled without retyping it.</p>
+<h3>|macro| spans in tables and generators</h3>
+<p>In table entries and generator templates a |...| span holds either a dice expression or a macro name. The span's text is trimmed and matched by exact case-insensitive name — the first match in macro order wins — with no prefix matching and no remainder: |sword| rolls the formula as (1d20+5), while |sword 1d6| is not a macro match.</p>
+<p>Why: a |macro| span puts a saved formula into a table entry or a template, so the formula lives in one place and every span that names it rolls it.</p>
+<h3>Failure messages</h3>
+<p>A row without a name is not saved: it needs a name first. A row whose name duplicates any other row loses to the earlier match in file order. A formula that does not parse shows the dice engine's message under a formula label. An empty input prompts for a dice expression like 2d6+3 or a macro name. A span that holds neither a macro name nor a valid dice expression fails. An empty span fails. A macro whose own formula is invalid fails.</p>
+</section>
+<nav class="help-pager" aria-label="Page navigation">
+<a class="pager-prev" href="dice.html">← Dice</a>
+<a class="pager-next" href="tables.html">Tables →</a>
+</nav>
+</main>
+<script src="../js/logic-language.js"></script>
+<script src="help.js"></script>
+</body>
+</html>
