@@ -50,9 +50,9 @@ function readBody(req, limit) {
 
 function normalizeDataPath(p) {
   if (p === null || p === undefined || p.trim() === '') return null;
-  let s = p.split('/').join('\\');
-  s = s.replace(/\\{2,}/g, '\\');
-  s = s.replace(/^\\+/, '');
+  let s = p.split('\\').join('/');
+  s = s.replace(/\/{2,}/g, '/');
+  s = s.replace(/^\/+/, '');
   if (s === '') return null;
   if (s.includes(':')) return null;
   if (s.includes('"') || s.includes('<') || s.includes('>') ||
@@ -60,9 +60,9 @@ function normalizeDataPath(p) {
       s.includes('\0')) return null;
   if (!s.toLowerCase().endsWith('.json')) return null;
   const lower = s.toLowerCase();
-  if (!lower.startsWith('tables\\') && !lower.startsWith('dice-macros\\') &&
-      !lower.startsWith('generators\\') && !lower.startsWith('logic-ops\\')) return null;
-  for (const segment of s.split('\\')) {
+  if (!lower.startsWith('tables/') && !lower.startsWith('dice-macros/') &&
+      !lower.startsWith('generators/') && !lower.startsWith('logic-ops/')) return null;
+  for (const segment of s.split('/')) {
     if (segment === '' || segment === '.' || segment === '..') return null;
   }
   return s;
