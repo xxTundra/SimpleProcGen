@@ -26,12 +26,11 @@ function contentTypeFor(fullPath) {
 function resolveStaticPath(urlPath, appRoot) {
   let p;
   try { p = decodeURIComponent(urlPath); } catch { return null; }
-  p = p.split('/').join('\\');
-  p = p.replace(/\\{2,}/g, '\\');
-  p = p.replace(/^\\+/, '');
-  if (p === '') p = 'index.html';
   if (p.includes(':')) return null;
-  for (const segment of p.split('\\')) {
+  if (p.includes('\\')) return null;
+  p = p.replace(/^\/+/, '');
+  if (p === '') p = 'index.html';
+  for (const segment of p.split('/')) {
     if (segment === '' || segment.startsWith('.')) return null;
   }
   const root = path.resolve(appRoot);

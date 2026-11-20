@@ -55,6 +55,12 @@ async function handleRequest(req, res) {
 
   const url = new URL(req.url, BASE_URL);
 
+  const rawTarget = (req.url || '').split('?')[0].split('#')[0].toLowerCase();
+  if (rawTarget.split('/').some((segment) => segment === '.' || segment === '..' || segment.includes('%2e'))) {
+    api.sendJson(res, 404, { error: 'not found' });
+    return;
+  }
+
   const route = url.pathname.toLowerCase();
   if (route === '/api/health' || route === '/api/files' || route === '/api/raw') {
     await api.handleApi(req, res, url, DataDir);
